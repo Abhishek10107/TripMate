@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TripMate AI — Multi-Agent Travel Planner</title>
+  <meta name="description" content="Professional Multi-Agent Travel Planning SaaS powered by LangGraph, MCP, Supervisor, Guardrails, and Human-in-the-Loop Refinement.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v=2.8.2">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand" onclick="switchView('landing')">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
+          </svg>
+        </div>
+        <span class="brand-name">TripMate AI</span>
+        <span class="brand-tag">v2.5 SaaS</span>
+      </div>
+
+      <nav class="nav-links">
+        <button class="nav-link active" id="navLinkLanding" onclick="switchView('landing')">Overview</button>
+        <button class="nav-link" id="navLinkPlanner" onclick="switchView('planner')">Plan Trip</button>
+        <button class="nav-link" id="navLinkDashboard" onclick="switchView('dashboard')">
+          Dashboard
+          <span id="tripCountBadge" class="nav-badge hidden">0</span>
+        </button>
+        <button class="nav-link nav-new-trip-btn" onclick="startNewTrip()" title="Start a fresh trip chat">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          New Trip
+        </button>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Theme Toggle Switch -->
+        <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle color theme" title="Toggle Light / Dark Mode">
+          <svg id="sunIcon" class="theme-icon hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg id="moonIcon" class="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <!-- Guest State -->
+        <div id="navGuestActions" class="nav-user-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openAuthModal('login')">Sign In</button>
+          <button class="btn btn-primary btn-sm" onclick="openAuthModal('signup')">Get Started</button>
+        </div>
+
+        <!-- Authenticated State -->
+        <div id="navAuthActions" class="nav-user-actions hidden">
+          <div class="user-pill" onclick="switchView('dashboard')">
+            <span id="userAvatar" class="user-avatar">U</span>
+            <span id="userNameDisplay" class="user-name">User</span>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="handleLogout()">Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       VIEW 1: LANDING PAGE
+  ========================================================== -->
+  <main id="viewLanding" class="view-section">
+    <!-- Hero Section -->
+    <section class="landing-hero">
+      <div class="container hero-content">
+        <div class="announcement-pill">
+          <span class="pill-dot"></span>
+          <span>LangGraph Multi-Agent Architecture • Real-Time MCP Tools</span>
+        </div>
+
+        <h1 class="hero-title">
+          Plan complex, personalized trips with coordinated AI specialists.
+        </h1>
+
+        <p class="hero-subtitle">
+          Autonomous supervisor, flight & hotel agents, live weather forecasters, and budget analysts collaborate to build your custom itinerary — with continuous human-in-the-loop control.
+        </p>
+
+        <div class="hero-cta-group">
+          <button class="btn btn-primary btn-lg" onclick="switchView('planner')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+            Start Planning Trip
+          </button>
+          <button class="btn btn-secondary btn-lg" onclick="loadSamplePrompt()">
+            Sample 12-Day NYC Family Trip
+          </button>
+          <button class="btn btn-outline btn-lg" onclick="switchView('dashboard')">
+            View Past Trips
+          </button>
+        </div>
+
+        <!-- Trust & Value Badges -->
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number">5+</span>
+            <span class="stat-label">Specialist Agents</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number">100%</span>
+            <span class="stat-label">Family & Senior Aware</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number">Live</span>
+            <span class="stat-label">MCP Tool Integrations</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number">Continuous</span>
+            <span class="stat-label">Iterative Refinement</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="section-how-it-works">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-eyebrow">The Multi-Agent Workflow</span>
+          <h2 class="section-title">How TripMate AI works</h2>
+          <p class="section-description">A coordinated team of AI agents solves logistics, scheduling, budgeting, and constraints together.</p>
+        </div>
+
+        <div class="steps-grid workflow-steps">
+          <!-- Step 1 -->
+          <div class="step-card step-card-1">
+            <div class="step-header-row">
+              <div class="step-icon-badge step-icon-blue">✍️</div>
+              <span class="step-tag-pill">Step 01 • Input</span>
+            </div>
+            <h3 class="step-title">Describe Your Journey</h3>
+            <p class="step-description">Tell us your destination, travel window, budget, and party details (toddler rest, senior walking pace, family suites).</p>
+            <div class="step-highlight-pill">🎯 Constraint Aware</div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="step-card step-card-2">
+            <div class="step-header-row">
+              <div class="step-icon-badge step-icon-emerald">🧭</div>
+              <span class="step-tag-pill">Step 02 • Swarm</span>
+            </div>
+            <h3 class="step-title">Supervisor Orchestrates</h3>
+            <p class="step-description">LangGraph Supervisor assigns live tasks across 4 specialist agents in parallel:</p>
+            <div class="agent-swarm-pills">
+              <span class="swarm-mini-pill">✈️ Flights</span>
+              <span class="swarm-mini-pill">🏨 Hotels</span>
+              <span class="swarm-mini-pill">🌦️ Weather</span>
+              <span class="swarm-mini-pill">💰 Budget</span>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="step-card step-card-3">
+            <div class="step-header-row">
+              <div class="step-icon-badge step-icon-amber">🛡️</div>
+              <span class="step-tag-pill">Step 03 • HITL</span>
+            </div>
+            <h3 class="step-title">Review Draft Itinerary</h3>
+            <p class="step-description">Human-in-the-Loop checkpoint stops before booking so you can inspect flight times, suite beds, and pacing.</p>
+            <div class="step-highlight-pill">✓ Human Control</div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="step-card step-card-4">
+            <div class="step-header-row">
+              <div class="step-icon-badge step-icon-purple">🔄</div>
+              <span class="step-tag-pill">Step 04 • Evolution</span>
+            </div>
+            <h3 class="step-title">Continuous Refinement</h3>
+            <p class="step-description">Ask for adjustments anytime. The AI updates specific days, meals, or pace while keeping the rest of your decisions intact.</p>
+            <div class="step-highlight-pill">⚡ Multi-Version Sync</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section class="section-features">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-eyebrow">Specialist Capabilities</span>
+          <h2 class="section-title">Engineered for real-world travel</h2>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🛡️</div>
+            <h3>Input Guardrail</h3>
+            <p>Validates request safety, filters out harmful queries, and checks destination feasibility before spending LLM tokens.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">✈️</div>
+            <h3>Flight Specialist</h3>
+            <p>Analyzes airline routes, airport transfer times, connection feasibility, and fare classes tailored to family groups.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🏨</div>
+            <h3>Accommodations Agent</h3>
+            <p>Discovers serviced apartments, family suites with kitchenettes, and baby/senior-friendly amenities near central transport.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🌦️</div>
+            <h3>Weather Intelligence</h3>
+            <p>Checks real-time and seasonal meteorological forecasts to adapt daily schedules and suggest packing essentials.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">💰</div>
+            <h3>Budget & Cost Estimator</h3>
+            <p>Breaks down flights, lodging, transit passes (like NYC MetroCards), food budgets, and attraction entry fees.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">🔄</div>
+            <h3>Continuous Refinement</h3>
+            <p>Iteratively tweak individual days, swap activities, or change hotels as many times as you like without starting over.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <section class="landing-cta-banner">
+      <div class="container cta-banner-card">
+        <h2>Ready to build your next unforgettable journey?</h2>
+        <p>No credit card required. Experience multi-agent travel orchestration in seconds.</p>
+        <button class="btn btn-primary btn-lg" onclick="switchView('planner')">
+          Launch Trip Planner
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- =========================================================
+       VIEW 2: PLANNER (Modern shadcn style)
+  ========================================================== -->
+  <main id="viewPlanner" class="view-section hidden">
+    <div class="container planner-container">
+      
+      <!-- Prompt & Search Card -->
+      <section class="card input-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Where do you want to travel?</h2>
+            <p class="card-description">
+              Describe your destination, group members, ages, dates, and budget. The AI supervisor will assign specialists.
+            </p>
+          </div>
+          <div class="header-status-group">
+            <button class="btn btn-outline btn-sm btn-new-chat" onclick="startNewTrip()" title="Clear form & start a brand new trip">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              New Chat
+            </button>
+            <div class="status-indicator">
+              <span class="status-dot"></span>
+              <span>Multi-Agent Ready</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-content">
+          <textarea
+            id="userInput"
+            class="textarea-input"
+            rows="4"
+            placeholder="Plan a complete 12 days New York trip from India for 6 members (ages 3 to 56) with family suites, kid activities, senior-friendly pacing, and estimated budget..."
+          ></textarea>
+
+          <div class="input-actions-row">
+            <div class="quick-chips">
+              <span class="chips-label">Quick ideas:</span>
+              <button class="chip-btn" onclick="setPrompt('Plan a complete 12 days New York trip from India for 6 members: Me (31), Wife (29), Son (3), Brother (29), Mom (49), Dad (56) with flights, suites, toddler rest, and budget.')">
+                NYC 12-Day (6 Pax)
+              </button>
+              <button class="chip-btn" onclick="setPrompt('Plan a complete 7 days Japan trip from Bangladesh including flights, hotels and sightseeing under 2 lakhs.')">
+                Japan 7-Day
+              </button>
+              <button class="chip-btn" onclick="setPrompt('Plan a 5 days Dubai trip from Delhi with flights, hotels and sightseeing.')">
+                Dubai 5-Day
+              </button>
+              <button class="chip-btn" onclick="setPrompt('Plan a 7 days Thailand trip with budget beach hotels and cultural sightseeing.')">
+                Thailand 7-Day
+              </button>
+            </div>
+
+            <!-- Standard sized, professional button -->
+            <button id="sendBtn" class="btn btn-primary" onclick="sendMessage()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+              <span id="btnText">Generate Plan</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           INTERACTIVE AGENT PROGRESS STEPPER (During Generation)
+      ========================================================== -->
+      <section id="progressSection" class="card progress-card hidden">
+        <div class="card-header">
+          <div>
+            <div class="progress-eyebrow">
+              <span class="pulsing-badge">In Progress</span>
+              <span>Autonomous Agents at Work</span>
+            </div>
+            <h3 id="progressTitle" class="card-title">Orchestrating Travel Specialists...</h3>
+            <p id="progressMessage" class="card-description">Supervisor agent is parsing requirements and assigning tasks.</p>
+          </div>
+        </div>
+
+        <div class="card-content">
+          <!-- Step Indicators -->
+          <div class="agent-stepper">
+            <div id="stepGuardrail" class="step-node active">
+              <div class="node-circle">🛡️</div>
+              <div class="node-info">
+                <span class="node-title">Guardrail</span>
+                <span class="node-desc">Safety & Intent</span>
+              </div>
+            </div>
+
+            <div id="stepSupervisor" class="step-node">
+              <div class="node-circle">🧭</div>
+              <div class="node-info">
+                <span class="node-title">Supervisor</span>
+                <span class="node-desc">Task Routing</span>
+              </div>
+            </div>
+
+            <div id="stepFlight" class="step-node">
+              <div class="node-circle">✈️</div>
+              <div class="node-info">
+                <span class="node-title">Flights</span>
+                <span class="node-desc">Routes & Fares</span>
+              </div>
+            </div>
+
+            <div id="stepHotel" class="step-node">
+              <div class="node-circle">🏨</div>
+              <div class="node-info">
+                <span class="node-title">Hotels</span>
+                <span class="node-desc">Suites & Stays</span>
+              </div>
+            </div>
+
+            <div id="stepWeather" class="step-node">
+              <div class="node-circle">🌦️</div>
+              <div class="node-info">
+                <span class="node-title">Weather</span>
+                <span class="node-desc">Forecasts</span>
+              </div>
+            </div>
+
+            <div id="stepBudget" class="step-node">
+              <div class="node-circle">💰</div>
+              <div class="node-info">
+                <span class="node-title">Budget</span>
+                <span class="node-desc">Estimates</span>
+              </div>
+            </div>
+
+            <div id="stepItinerary" class="step-node">
+              <div class="node-circle">🗓️</div>
+              <div class="node-info">
+                <span class="node-title">Itinerary</span>
+                <span class="node-desc">Synthesis</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress Bar & Live Ticker -->
+          <div class="progress-footer">
+            <div class="progress-bar-container">
+              <div id="progressBar" class="progress-bar-fill"></div>
+            </div>
+            <div class="live-ticker">
+              <span class="ticker-dot"></span>
+              <span id="liveTickerText">Analyzing destination requirements and passenger profiles...</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Routing & Workflow Badge Section -->
+      <section id="workflowSection" class="card workflow-card hidden">
+        <div class="card-header">
+          <div>
+            <span class="badge-subtle">Supervisor Agent</span>
+            <h3 class="card-title">Routing Summary</h3>
+          </div>
+          <span id="guardrailBadge" class="guardrail-badge">Guardrail passed</span>
+        </div>
+        <div class="card-content">
+          <p id="supervisorReasoning" class="supervisor-reasoning-text"></p>
+          <div id="agentChips" class="agent-chips-container"></div>
+        </div>
+      </section>
+
+      <!-- Human-in-the-Loop Review Banner -->
+      <section id="approvalSection" class="card approval-card hidden">
+        <div class="card-header">
+          <div class="hitl-header-left">
+            <div class="hitl-icon">👤</div>
+            <div>
+              <span class="badge-subtle">Human-in-the-Loop</span>
+              <h3 class="card-title">Review the Draft Itinerary</h3>
+              <p id="approvalRequest" class="card-description">
+                Approve this draft to generate the final itinerary, or provide revision feedback.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-content">
+          <textarea
+            id="approvalFeedback"
+            class="textarea-input"
+            rows="2"
+            placeholder="Add revision feedback, e.g., make Day 4 easier on walking for seniors and recommend vegetarian dinner spots..."
+          ></textarea>
+
+          <div class="approval-actions">
+            <button id="approveBtn" class="btn btn-primary" onclick="submitApproval(true)">
+              ✓ Approve & Generate Final
+            </button>
+            <button id="reviseBtn" class="btn btn-secondary" onclick="submitApproval(false)">
+              ↺ Revise with Feedback
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Itinerary Result Section -->
+      <section id="resultSection" class="card result-card hidden">
+        <div class="card-header result-header-row">
+          <div>
+            <div class="result-title-row">
+              <h2 id="resultTitle" class="card-title">Your AI Travel Plan</h2>
+              <span id="versionBadge" class="badge-version">Version 1</span>
+            </div>
+            <p id="threadInfo" class="thread-info-text">Thread ID: -</p>
+          </div>
+
+          <div class="result-button-group">
+            <button class="btn btn-outline btn-sm" onclick="copyResult()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+              </svg>
+              <span id="copyBtnText">Copy Markdown</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="downloadPDF()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+              <span id="downloadBtnText">Download PDF</span>
+            </button>
+            <div class="auto-saved-badge" title="Automatically synchronized with your database">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6 9 17l-5-5"/>
+              </svg>
+              <span>Auto-saved to Dashboard</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-content">
+          <div id="pdfContent" class="pdf-export-container">
+            <div id="resultBox" class="markdown-body"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           CONTINUOUS REFINEMENT SECTION (Always available)
+      ========================================================== -->
+      <section id="refineSection" class="card refine-card hidden">
+        <div class="card-header">
+          <div>
+            <div class="refine-eyebrow">
+              <span class="badge-subtle">Continuous Refinement Loop</span>
+            </div>
+            <h3 class="card-title">Keep refining this itinerary</h3>
+            <p class="card-description">
+              Want changes? You can adjust this itinerary continuously. The AI preserves your existing itinerary decisions and updates only the specific days, hotels, or pace requested.
+            </p>
+          </div>
+        </div>
+
+        <div class="card-content">
+          <div class="refine-suggestions">
+            <span class="chips-label">Quick adjustments:</span>
+            <button class="chip-btn" onclick="setRefinePrompt('Make Day 4 lighter on walking for senior family members and add a scenic rest spot.')">
+              More rest for seniors
+            </button>
+            <button class="chip-btn" onclick="setRefinePrompt('Add recommended vegetarian and Indian restaurants near each day’s dinner location.')">
+              Vegetarian dining
+            </button>
+            <button class="chip-btn" onclick="setRefinePrompt('Find more budget-friendly hotel and apartment alternatives in Midtown or Brooklyn.')">
+              Budget lodging
+            </button>
+            <button class="chip-btn" onclick="setRefinePrompt('Add dedicated fun activities for the 3-year-old child on Day 6 and Day 7.')">
+              Toddler activities
+            </button>
+          </div>
+
+          <textarea
+            id="refineFeedback"
+            class="textarea-input"
+            rows="3"
+            placeholder="Type your refinement feedback here (e.g., Replace Day 5 Broadway show with an outdoor river cruise, and add vegetarian lunch options in Chelsea)..."
+          ></textarea>
+
+          <div class="refine-actions-row">
+            <div id="revisionHistoryPills" class="history-pills"></div>
+
+            <button id="refineBtn" class="btn btn-primary" onclick="submitRefinement()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+              <span id="refineBtnText">Update Itinerary</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Error Notification Box -->
+      <div id="errorBox" class="alert-error hidden"></div>
+
+    </div>
+  </main>
+
+  <!-- =========================================================
+       VIEW 3: DASHBOARD (Past Conversations & Trips)
+  ========================================================== -->
+  <main id="viewDashboard" class="view-section hidden">
+    <div class="container dashboard-container">
+      <div class="dashboard-header-row">
+        <div>
+          <div class="dashboard-eyebrow">
+            <span>Saved Conversations</span>
+          </div>
+          <h1 class="dashboard-title">My Travel Plans</h1>
+          <p class="dashboard-subtitle">Browse past travel planning threads, review versions, and continue refining anytime.</p>
+        </div>
+
+        <div class="dashboard-header-actions">
+          <button class="btn btn-primary" onclick="startNewTrip()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Plan New Trip
+          </button>
+        </div>
+      </div>
+
+      <!-- Search & Filters -->
+      <div class="dashboard-filter-bar">
+        <div class="search-input-wrapper">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.3-4.3"/>
+          </svg>
+          <input
+            id="tripSearchInput"
+            type="text"
+            class="search-input"
+            placeholder="Search by destination or title..."
+            oninput="filterTrips()"
+          >
+        </div>
+      </div>
+
+      <!-- Trips Grid -->
+      <div id="tripsGrid" class="trips-grid">
+        <!-- Rendered dynamically by script.js -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="tripsEmptyState" class="card empty-state-card hidden">
+        <div class="empty-icon">🗺️</div>
+        <h3>No trips saved yet</h3>
+        <p>Plan your first journey with TripMate AI and your generated itineraries will automatically appear here.</p>
+        <button class="btn btn-primary" onclick="startNewTrip()">
+          Create Your First Itinerary
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- =========================================================
+       AUTHENTICATION MODAL (Sign In / Sign Up)
+  ========================================================== -->
+  <div id="authModal" class="modal-backdrop hidden" onclick="handleBackdropClick(event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-tabs">
+          <button id="authTabLogin" class="modal-tab active" onclick="switchAuthTab('login')">Sign In</button>
+          <button id="authTabSignup" class="modal-tab" onclick="switchAuthTab('signup')">Create Account</button>
+        </div>
+        <button class="modal-close-btn" onclick="closeAuthModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="authErrorAlert" class="alert-error hidden"></div>
+
+        <!-- Sign In Form -->
+        <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">Email Address</label>
+            <input id="loginEmail" type="email" class="form-input" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" class="form-input" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        </form>
+
+        <!-- Sign Up Form -->
+        <form id="signupForm" class="hidden" onsubmit="handleSignupSubmit(event)">
+          <div class="form-group">
+            <label class="form-label" for="signupName">Full Name</label>
+            <input id="signupName" type="text" class="form-input" placeholder="Manishkumar Gupta" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="signupEmail">Email Address</label>
+            <input id="signupEmail" type="email" class="form-input" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="signupPassword">Password</label>
+            <input id="signupPassword" type="password" class="form-input" placeholder="At least 6 characters" minlength="6" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <p class="modal-footer-note">Accounts preserve your past conversations and itineraries securely.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="toast-notification hidden"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <span class="brand-name">TripMate AI</span>
+        <p>Autonomous Multi-Agent Travel Planner • Built with LangGraph, FastMCP & Groq</p>
+      </div>
+      <div class="footer-links">
+        <a href="#" onclick="switchView('landing'); return false;">Overview</a>
+        <a href="#" onclick="switchView('planner'); return false;">Plan Trip</a>
+        <a href="#" onclick="switchView('dashboard'); return false;">Dashboard</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/static/marked.min.js"></script>
+  <script src="/static/html2pdf.bundle.min.js"></script>
+  <script src="/static/script.js?v=2.8.2"></script>
+</body>
+</html>
